@@ -9,24 +9,26 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
 
+var todosApi = app.MapGroup("/todos");
+
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/todos", async (TodoDb db) => await db.Todos.ToListAsync());
-app.MapGet("/todos/complete", async (TodoDb db) => await db.Todos.Where(t => t.IsComplete).ToListAsync());
-app.MapGet("/todos/{id}", async (int id, TodoDb db) =>
+todosApi.MapGet("/", async (TodoDb db) => await db.Todos.ToListAsync());
+todosApi.MapGet("/complete", async (TodoDb db) => await db.Todos.Where(t => t.IsComplete).ToListAsync());
+todosApi.MapGet("/{id}", async (int id, TodoDb db) =>
 {
     var item = await db.Todos.FindAsync(id);
     return item is Todo todo ? Results.Ok(todo) : Results.NotFound();
 });
 
-app.MapPost("/todos", async (Todo todo, TodoDb db) =>
+todosApi.MapPost("/", async (Todo todo, TodoDb db) =>
 {
     db.Todos.Add(todo);
     await db.SaveChangesAsync();
     return Results.Created($"/todos/{todo.Id}", todo);
 });
 
-app.MapPut("/todos/{id}", async (int id, Todo inputTodo, TodoDb db) =>
+todosApi.MapPut("/{id}", async (int id, Todo inputTodo, TodoDb db) =>
 {
     var todo = await db.Todos.FindAsync(id);
 
@@ -40,7 +42,7 @@ app.MapPut("/todos/{id}", async (int id, Todo inputTodo, TodoDb db) =>
     return Results.NoContent();
 });
 
-app.MapDelete("/todos/{id}", async (int id, TodoDb db) =>
+todosApi.MapDelete("/{id}", async (int id, TodoDb db) =>
 {
     if (await db.Todos.FindAsync(id) is Todo todo)
     {
