@@ -13,7 +13,7 @@ var todosApi = app.MapGroup("/todos");
 
 app.MapGet("/", () => "Hello World!");
 
-todosApi.MapGet("/", async (TodoDb db) => await db.Todos.ToListAsync());
+todosApi.MapGet("/", GetAllTodos);
 todosApi.MapGet("/complete", async (TodoDb db) => await db.Todos.Where(t => t.IsComplete).ToListAsync());
 todosApi.MapGet("/{id}", async (int id, TodoDb db) =>
 {
@@ -55,3 +55,10 @@ todosApi.MapDelete("/{id}", async (int id, TodoDb db) =>
 });
 
 app.Run();
+
+static async Task<IResult> GetAllTodos(TodoDb db)
+{
+    var todos = await db.Todos.ToArrayAsync();
+    var result = TypedResults.Ok(todos);
+    return result;
+}
